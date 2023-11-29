@@ -78,7 +78,7 @@ COPY nginx_conf.d/ /etc/nginx/conf.d/
 COPY aliyun/ /aliyun
 RUN tar xzvf /aliyun/aliyun-cli-linux.tgz -C /aliyun \
     && cp /aliyun/aliyun /usr/local/bin \
-    && rm /taliyunmp/aliyun-cli-linux.tgz
+    && rm /aliyun/aliyun-cli-linux.tgz
 COPY /aliyun/aliyun-dns.sh /usr/local/bin/aliyun-dns.sh
 RUN chmod +x /usr/local/bin/aliyun-dns.sh \
     && ln -s /usr/local/bin/aliyun-dns.sh /usr/local/bin/aliyun-dns
