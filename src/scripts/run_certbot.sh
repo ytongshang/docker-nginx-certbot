@@ -9,7 +9,10 @@ set -e
 : "${CERTBOT_STAGING_URL=https://acme-staging-v02.api.letsencrypt.org/directory}"
 
 # Source in util.sh so we can have our nice tools.
-. "$(cd "$(dirname "$0")"; pwd)/util.sh"
+. "$(
+    cd "$(dirname "$0")"
+    pwd
+)/util.sh"
 
 info "Starting certificate renewal process"
 
@@ -62,12 +65,27 @@ get_certificate() {
     if [ "${authenticator}" == "webroot" ]; then
         challenge_type="http-01"
         authenticator_params="--webroot-path=/var/www/letsencrypt"
+    elif [[ "${authenticator}" == "dns-aliyun" ]]; then
+        info "Requesting aliyun"
+        certbot certonly \
+            --agree-tos --keep -n --text \
+            ${2} \
+            --manual --preferred-challenges dns \
+            --manual-auth-hook "aliyun-dns" \
+            --manual-cleanup-hook "aliyun-dns clean" \
+            --email "${CERTBOT_EMAIL}" \
+            --server "${letsencrypt_url}" \
+            --rsa-key-size "${RSA_KEY_SIZE}" \
+            --elliptic-curve "${ELLIPTIC_CURVE}" \
+            --key-type "${3}" \
+            --cert-name "${1}" \
+            --debug ${force_renew}
     elif [[ "${authenticator}" == dns-* ]]; then
         challenge_type="dns-01"
 
         if [ "${authenticator#dns-}" == "route53" ]; then
             # This one is special and makes use of a different configuration.
-            if [[ ( -z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}" ) && ! -f "${HOME}/.aws/config" ]]; then
+            if [[ (-z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}") && ! -f "${HOME}/.aws/config" ]]; then
                 error "Authenticator is '${authenticator}' but neither '${HOME}/.aws/config' or AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY are found"
                 return 1
             fi
@@ -171,8 +189,8 @@ auto_enable_configs
 
 # Make sure the Nginx configs are valid.
 if ! nginx -t; then
-  error "Nginx configuration is invalid, skipped reloading. Check the logs for details."
-  exit 0
+    error "Nginx configuration is invalid, skipped reloading. Check the logs for details."
+    exit 0
 fi
 
 # Finally, tell Nginx to reload the configs.

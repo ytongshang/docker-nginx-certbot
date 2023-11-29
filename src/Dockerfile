@@ -25,49 +25,49 @@ ARG PIP_BREAK_SYSTEM_PACKAGES=1
 
 # Do a single run command to make the intermediary containers smaller.
 RUN set -ex && \
-# Install packages necessary during the build phase (for all architectures).
+    # Install packages necessary during the build phase (for all architectures).
     apt-get update && \
     apt-get install -y --no-install-recommends \
-            build-essential \
-            cargo \
-            curl \
-            libffi8 \
-            libffi-dev \
-            libssl-dev \
-            openssl \
-            pkg-config \
-            procps \
-            python3 \
-            python3-dev \
+    build-essential \
+    cargo \
+    curl \
+    libffi8 \
+    libffi-dev \
+    libssl-dev \
+    openssl \
+    pkg-config \
+    procps \
+    python3 \
+    python3-dev \
     && \
-# Install the latest version of PIP, Setuptools and Wheel.
+    # Install the latest version of PIP, Setuptools and Wheel.
     curl -L 'https://bootstrap.pypa.io/get-pip.py' | python3 && \
-# Install certbot.
+    # Install certbot.
     pip3 install -U cffi certbot \
-# And the supported extra authenticators
-        $(echo $CERTBOT_DNS_AUTHENTICATORS | sed 's/\(^\| \)/\1certbot-dns-/g') \
+    # And the supported extra authenticators
+    $(echo $CERTBOT_DNS_AUTHENTICATORS | sed 's/\(^\| \)/\1certbot-dns-/g') \
     && \
-# Remove everything that is no longer necessary.
+    # Remove everything that is no longer necessary.
     apt-get remove --purge -y \
-            build-essential \
-            cargo \
-            curl \
-            libffi-dev \
-            libssl-dev \
-            pkg-config \
-            python3-dev \
+    build-essential \
+    cargo \
+    curl \
+    libffi-dev \
+    libssl-dev \
+    pkg-config \
+    python3-dev \
     && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \
     rm -rf /root/.cargo && \
-# Create new directories and set correct permissions.
+    # Create new directories and set correct permissions.
     mkdir -p /var/www/letsencrypt && \
     mkdir -p /etc/nginx/user_conf.d && \
     chown www-data:www-data -R /var/www \
     && \
-# Make sure there are no surprise config files inside the config folder.
+    # Make sure there are no surprise config files inside the config folder.
     rm -f /etc/nginx/conf.d/*
 
 # Copy in our "default" Nginx server configurations, which make sure that the
@@ -75,10 +75,18 @@ RUN set -ex && \
 # everything else to HTTPS.
 COPY nginx_conf.d/ /etc/nginx/conf.d/
 
+COPY aliyun/ /aliyun
+RUN tar xzvf /aliyun/aliyun-cli-linux.tgz -C /aliyun \
+    && cp /aliyun/aliyun /usr/local/bin \
+    && rm /taliyunmp/aliyun-cli-linux.tgz
+COPY /aliyun/aliyun-dns.sh /usr/local/bin/aliyun-dns.sh
+RUN chmod +x /usr/local/bin/aliyun-dns.sh \
+    && ln -s /usr/local/bin/aliyun-dns.sh /usr/local/bin/aliyun-dns
+
 # Copy in all our scripts and make them executable.
 COPY scripts/ /scripts
 RUN chmod +x -R /scripts && \
-# Make so that the parent's entrypoint script is properly triggered (issue #21).
+    # Make so that the parent's entrypoint script is properly triggered (issue #21).
     sed -ri '/^if \[ "\$1" = "nginx" \] \|\| \[ "\$1" = "nginx-debug" \]; then$/,${s//if echo "$1" | grep -q "nginx"; then/;b};$q1' /docker-entrypoint.sh
 
 # Create a volume to have persistent storage for the obtained certificates.
