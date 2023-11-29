@@ -192,8 +192,12 @@ a look and see if one of these helps or inspires you to do something similar:
 - [A `Node.js` application served over HTTPS in AWS Elastic Beanstalk](https://efraim-rodrigues.medium.com/using-docker-to-containerize-your-node-js-aefcd1ecd37d)
 - [Host your own `Nakama` server](https://www.snopekgames.com/tutorial/2021/how-host-nakama-server-10mo)
 
-
-
+# Aliyun支持
+- 使用docker-compose
+- nginx-certbot.env设置CERTBOT_AUTHENTICATOR为dns-aliyun
+- [阿里云授权RAM用户管理域名](https://help.aliyun.com/zh/dws/user-guide/authorize-a-ram-user-to-manage-domain-names),授权选择AliyunDNSFullAccess，
+- 新增环境变量ALIYUN_CLI_ACCESS_KEY_ID，ALIYUN_CLI_ACCESS_KEY_SECRET
+- enjoy
 
 
 [1]: https://letsencrypt.org/
