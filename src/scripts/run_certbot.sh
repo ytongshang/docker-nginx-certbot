@@ -66,7 +66,7 @@ get_certificate() {
         challenge_type="http-01"
         authenticator_params="--webroot-path=/var/www/letsencrypt"
     elif [[ "${authenticator}" == "dns-aliyun" ]]; then
-        info "Requesting aliyun"
+        info "aliyun Requesting an ${3^^} certificate for '${1}' (${challenge_type} through ${authenticator})"
         certbot certonly \
             --agree-tos --keep -n --text \
             ${2} \
@@ -80,6 +80,7 @@ get_certificate() {
             --key-type "${3}" \
             --cert-name "${1}" \
             --debug ${force_renew}
+        return 0
     elif [[ "${authenticator}" == dns-* ]]; then
         challenge_type="dns-01"
 
